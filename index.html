@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>75% Rule - Gen Z Attendance Hub</title>
+<title>75% Rule - Smart Attendance Hub</title>
 
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -50,22 +50,20 @@
     border-radius: 20px;
     font-size: 11px;
     font-weight: 800;
-    letter-spacing: 0.5px;
   }
 
   .container { max-width: 600px; margin: 0 auto; padding: 18px; }
 
+  /* 🌌 AESTHETIC GEN Z AUTH CARD */
   .auth-hero-card {
     background: rgba(18, 24, 38, 0.7);
     border: 1px solid rgba(56, 189, 248, 0.2);
     border-radius: 24px;
-    padding: 34px 22px;
+    padding: 30px 22px;
     text-align: center;
     backdrop-filter: blur(16px);
-    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5), inset 0 1px 0 0 rgba(255,255,255,0.05);
-    margin-top: 30px;
-    position: relative;
-    overflow: hidden;
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+    margin-top: 20px;
   }
   .hero-tag {
     display: inline-block;
@@ -77,50 +75,71 @@
     letter-spacing: 1px;
     padding: 5px 12px;
     border-radius: 20px;
-    margin-bottom: 16px;
-    text-transform: uppercase;
+    margin-bottom: 12px;
   }
   .auth-hero-card h2 {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 900;
-    line-height: 1.2;
-    margin-bottom: 10px;
-    background: linear-gradient(135deg, #ffffff, #94a3b8);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
   }
   .auth-hero-card p {
-    font-size: 13px;
+    font-size: 12px;
     color: #94a3b8;
-    line-height: 1.6;
-    margin-bottom: 26px;
-    max-width: 380px;
-    margin-left: auto;
-    margin-right: auto;
+    margin-bottom: 22px;
   }
 
-  .btn-google-login {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  .auth-input-group {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
-    background: #ffffff;
-    color: #0b0f19;
-    border: none;
-    padding: 14px 28px;
-    border-radius: 14px;
+    max-width: 360px;
+    margin: 0 auto 16px;
+  }
+  .auth-input {
+    background: #080a11;
+    border: 1px solid #1e283d;
+    padding: 13px 16px;
+    border-radius: 12px;
+    color: #fff;
     font-size: 14px;
+    outline: none;
+    transition: border 0.2s;
+  }
+  .auth-input:focus { border-color: #38bdf8; }
+
+  .btn-auth-primary {
+    background: #38bdf8;
+    color: #080a11;
+    border: none;
+    padding: 13px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25);
+  }
+
+  .auth-toggle-row {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-top: 14px;
+  }
+  .auth-toggle-link {
+    color: #38bdf8;
     font-weight: 800;
     cursor: pointer;
-    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
-    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: underline;
   }
-  .btn-google-login:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(255, 255, 255, 0.25);
+  .forgot-link {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 8px;
+    cursor: pointer;
+    display: inline-block;
   }
-  .btn-google-login svg { width: 18px; height: 18px; }
+  .forgot-link:hover { color: #38bdf8; }
 
+  /* User Profile Bar */
   .profile-bar {
     background: rgba(19, 28, 46, 0.6);
     border: 1px solid #1f2d47;
@@ -132,7 +151,7 @@
     margin-bottom: 20px;
   }
   .profile-info { display: flex; align-items: center; gap: 10px; }
-  .profile-avatar { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #38bdf8; }
+  .profile-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #38bdf8; }
   .profile-name { font-size: 13px; font-weight: 800; }
   .profile-status { font-size: 10px; color: #22c55e; font-weight: 700; display: flex; align-items: center; gap: 4px; }
   .profile-status::before { content: ''; width: 6px; height: 6px; background: #22c55e; border-radius: 50%; display: inline-block; }
@@ -147,6 +166,7 @@
     cursor: pointer;
   }
 
+  /* Overall Stats */
   .stats-card {
     background: #121724;
     border: 1px solid #1e283d;
@@ -169,6 +189,7 @@
   .safe { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid #22c55e; }
   .critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; }
 
+  /* Add Subject */
   .add-box {
     background: #121724;
     border: 1px solid #1e283d;
@@ -199,6 +220,7 @@
     font-size: 13px;
   }
 
+  /* Subject Cards */
   .subject-card {
     background: #121724;
     border: 1px solid #1e283d;
@@ -283,29 +305,36 @@
 </header>
 
 <div class="container">
+  <!-- 🔐 AUTH CARD (Login / Register / Forgot Password) -->
   <div class="auth-hero-card" id="loginBox">
-    <div class="hero-tag">☁️ Cloud Sync Active</div>
-    <h2>Never lose your attendance data again.</h2>
-    <p>Sign in with your Google account to sync all your subjects, classes, and safe bunk calculations across your phone, laptop, and iPad in real time.</p>
+    <div class="hero-tag">☁️ Cloud Account</div>
+    <h2 id="authHeading">Welcome Back</h2>
+    <p id="authSub">Sign in with your Gmail and your app password to sync attendance.</p>
     
-    <button class="btn-google-login" onclick="signInWithGoogle()">
-      <svg viewBox="0 0 24 24">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-      </svg>
-      Sign in with Google
-    </button>
+    <div class="auth-input-group">
+      <input type="email" id="authEmail" class="auth-input" placeholder="Enter your Gmail address">
+      <input type="password" id="authPassword" class="auth-input" placeholder="Enter your app password">
+      <button class="btn-auth-primary" id="btnSubmitAuth" onclick="handleAuthSubmit()">Login</button>
+    </div>
+
+    <div>
+      <span class="forgot-link" onclick="handleForgotPassword()">Forgot Password? Reset via Gmail</span>
+    </div>
+
+    <div class="auth-toggle-row">
+      <span id="authToggleText">New user? </span>
+      <span class="auth-toggle-link" id="authToggleBtn" onclick="toggleAuthMode()">Create New Account</span>
+    </div>
   </div>
 
+  <!-- 🚀 MAIN APP BODY (Visible when logged in) -->
   <div id="appBody" style="display: none;">
     <div class="profile-bar">
       <div class="profile-info">
         <img id="userAvatar" class="profile-avatar" src="" alt="User">
         <div>
-          <div class="profile-name" id="userName">Student</div>
-          <div class="profile-status">Synced with Firestore</div>
+          <div class="profile-name" id="userName">User</div>
+          <div class="profile-status">Cloud Sync Active</div>
         </div>
       </div>
       <button class="btn-logout" onclick="signOutUser()">Logout</button>
@@ -321,7 +350,7 @@
     </div>
 
     <div class="add-box">
-      <input type="text" id="subjectInput" placeholder="Add subject (e.g. OS, C Programming, Math)...">
+      <input type="text" id="subjectInput" placeholder="Add subject (e.g. OS, C Programming, Web Tech)...">
       <button onclick="addSubject()">+ ADD</button>
     </div>
 
@@ -334,7 +363,7 @@
 </footer>
 
 <script>
-  // Tumhara Firebase config linked hai
+  // Tumhara Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyAqBD363_lplyLeHEnJ0nDLMymWzEdIzg8",
     authDomain: "college-attendance-track-2b94f.firebaseapp.com",
@@ -351,16 +380,77 @@
 
   let currentUser = null;
   let subjects = [];
+  let isRegisterMode = false;
 
+  function toggleAuthMode() {
+    isRegisterMode = !isRegisterMode;
+    const heading = document.getElementById('authHeading');
+    const sub = document.getElementById('authSub');
+    const btn = document.getElementById('btnSubmitAuth');
+    const toggleText = document.getElementById('authToggleText');
+    const toggleBtn = document.getElementById('authToggleBtn');
+
+    if (isRegisterMode) {
+      heading.textContent = "Create Account";
+      sub.textContent = "Use your real Gmail & create any password of your choice.";
+      btn.textContent = "Sign Up";
+      toggleText.textContent = "Already have an account? ";
+      toggleBtn.textContent = "Login here";
+    } else {
+      heading.textContent = "Welcome Back";
+      sub.textContent = "Sign in with your Gmail and your app password to sync attendance.";
+      btn.textContent = "Login";
+      toggleText.textContent = "New user? ";
+      toggleBtn.textContent = "Create New Account";
+    }
+  }
+
+  function handleAuthSubmit() {
+    const email = document.getElementById('authEmail').value.trim();
+    const pass = document.getElementById('authPassword').value.trim();
+
+    if (!email || !pass) {
+      alert("Gmail aur Password dono enter karo!");
+      return;
+    }
+    if (pass.length < 6) {
+      alert("Password kam se kam 6 characters ka hona chahiye!");
+      return;
+    }
+
+    if (isRegisterMode) {
+      // Create new account
+      auth.createUserWithEmailAndPassword(email, pass)
+        .then(() => alert("Account successfully ban gaya! Data auto sync hoga."))
+        .catch(err => alert("Sign up failed: " + err.message));
+    } else {
+      // Existing login
+      auth.signInWithEmailAndPassword(email, pass)
+        .catch(err => alert("Login failed: " + err.message));
+    }
+  }
+
+  function handleForgotPassword() {
+    const email = prompt("Apna registered Gmail enter karo. Wahan password reset link bhej denge:");
+    if (!email) return;
+
+    auth.sendPasswordResetEmail(email.trim())
+      .then(() => alert("Password reset link tumhare Gmail par bhej diya gaya hai! Inbox check karo."))
+      .catch(err => alert("Error: " + err.message));
+  }
+
+  // Auth Listener
   auth.onAuthStateChanged(user => {
     if (user) {
       currentUser = user;
       document.getElementById('loginBox').style.display = 'none';
       document.getElementById('appBody').style.display = 'block';
 
-      document.getElementById('userName').textContent = user.displayName || "Student";
-      document.getElementById('userAvatar').src = user.photoURL || "https://api.dicebear.com/7.x/bottts/svg?seed=yashh";
+      const shortName = user.email.split('@')[0];
+      document.getElementById('userName').textContent = shortName;
+      document.getElementById('userAvatar').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${shortName}`;
 
+      // Firestore Realtime listener
       db.collection('users').doc(user.uid).onSnapshot(doc => {
         if (doc.exists && doc.data().subjects) {
           subjects = doc.data().subjects;
@@ -376,11 +466,6 @@
       document.getElementById('appBody').style.display = 'none';
     }
   });
-
-  function signInWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(err => alert("Google Login Error: " + err.message));
-  }
 
   function signOutUser() {
     auth.signOut();
@@ -410,7 +495,7 @@
   }
 
   function deleteSubject(id) {
-    if (confirm("Is subject ko cloud se delete karna hai?")) {
+    if (confirm("Is subject ko delete karna hai?")) {
       subjects = subjects.filter(s => s.id !== id);
       syncToCloud();
     }
