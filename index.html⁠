@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BunkSafe 75% | Attendance Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Boys Batman Theme */
+    body.theme-boys {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(rgba(5, 5, 8, 0.85), rgba(10, 10, 15, 0.95)), 
+                  url('https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1200&q=80') center/cover fixed no-repeat;
+      color: #f1f5f9;
+    }
+    .theme-boys .title-font { font-family: 'Cinzel', serif; letter-spacing: 2px; }
+    .theme-boys .card-bg {
+      background: rgba(18, 18, 24, 0.8);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      box-shadow: 0 0 25px rgba(220, 38, 38, 0.15);
+      backdrop-filter: blur(14px);
+    }
+    .theme-boys .accent-btn {
+      background: linear-gradient(135deg, #dc2626, #7f1d1d);
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+    }
+
+    /* Girls Kitty Pastel Theme */
+    body.theme-girls {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(rgba(255, 240, 245, 0.85), rgba(254, 226, 226, 0.9)), 
+                  url('https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=1200&q=80') center/cover fixed no-repeat;
+      color: #831843;
+    }
+    .theme-girls .title-font { font-family: 'Quicksand', sans-serif; font-weight: 700; }
+    .theme-girls .card-bg {
+      background: rgba(255, 255, 255, 0.85);
+      border: 2px solid #fbcfe8;
+      box-shadow: 0 10px 25px rgba(244, 114, 182, 0.2);
+      backdrop-filter: blur(10px);
+    }
+    .theme-girls .accent-btn {
+      background: linear-gradient(135deg, #f472b6, #ec4899);
+      box-shadow: 0 4px 15px rgba(244, 114, 182, 0.4);
+      color: #ffffff !important;
+    }
+    .theme-girls input {
+      background: rgba(255, 255, 255, 0.95) !important;
+      border: 1.5px solid #fbcfe8 !important;
+      color: #831843 !important;
+    }
+  </style>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged,
+      sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCp0yTjKG03ffLlq6wxwh40yxJ-PIyjUfw",
+      authDomain: "bunktracker-final.firebaseapp.com",
+      projectId: "bunktracker-final",
+      storageBucket: "bunktracker-final.firebasestorage.app",
+      messagingSenderId: "512504491604",
+      appId: "1:512504491604:web:79d685d482f40f154c47c1",
+      measurementId: "G-SSSJPXKDFGM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let subjects = [];
+
+    window.setMode = (mode) => {
+      document.body.className = mode === 'girls' ? 'theme-girls' : 'theme-boys';
+      document.getElementById('header-tag').innerText = mode === 'girls' ? '🌸 Kitty Pastel Edition 🎀' : '🦇 The Dark Knight Edition 🦇';
+      document.getElementById('brand-subtitle').innerText = mode === 'girls' ? 'Girls Attendance Diary' : 'Vengeance Attendance Tracker';
+      localStorage.setItem('user_theme', mode);
+    };
+
+    window.switchAuthMode = (mode) => {
+      const isLogin = mode === 'login';
+      document.getElementById('auth-submit-btn').innerText = isLogin ? 'Login' : 'Sign Up';
+      document.getElementById('toggle-to-signup').classList.toggle('hidden', !isLogin);
+      document.getElementById('toggle-to-login').classList.toggle('hidden', isLogin);
+      document.getElementById('auth-error').innerText = '';
+    };
+
+    window.handleAuth = async () => {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const isLogin = document.getElementById('auth-submit-btn').innerText === 'Login';
+      const errEl = document.getElementById('auth-error');
+      errEl.innerText = '';
+
+      if (!email || !password) {
+        errEl.innerText = "Email & Password required!";
+        return;
+      }
+
+      try {
+        if (isLogin) {
+          await signInWithEmailAndPassword(auth, email, password);
+        } else {
+          await createUserWithEmailAndPassword(auth, email, password);
+        }
+      } catch (err) {
+        errEl.innerText = err.message.replace("Firebase: ", "");
+      }
+    };
+
+    window.handleResetPassword = async () => {
+      const email = document.getElementById('auth-email').value.trim();
+      const errEl = document.getElementById('auth-error');
+      if (!email) {
+        errEl.innerText = "Enter email first!";
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("Password reset email sent!");
+      } catch (err) {
+        errEl.innerText = err.message.replace("Firebase: ", "");
+      }
+    };
+
+    window.handleLogout = async () => {
+      await signOut(auth);
+      subjects = [];
+      renderSubjects();
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      const authCard = document.getElementById('auth-section');
+      const appCard = document.getElementById('app-section');
+      const userBadge = document.getElementById('user-badge');
+
+      if (user) {
+        authCard.classList.add('hidden');
+        appCard.classList.remove('hidden');
+        userBadge.innerText = user.email;
+        loadUserData(user.uid);
+      } else {
+        authCard.classList.remove('hidden');
+        appCard.classList.add('hidden');
+      }
+    });
+
+    async function loadUserData(uid) {
+      try {
+        const docRef = doc(db, "users", uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          subjects = docSnap.data().subjects || [];
+          renderSubjects();
+        }
+      } catch (e) {
+        console.error("Load error:", e);
+      }
+    }
+
+    async function syncData() {
+      if (!currentUser) return;
+      try {
+        await setDoc(doc(db, "users", currentUser.uid), { subjects });
+      } catch (e) {
+        console.error("Save error:", e);
+      }
+    }
+
+    window.addSubject = () => {
+      const name = document.getElementById('sub-name').value.trim();
+      const attended = parseInt(document.getElementById('sub-attended').value) || 0;
+      const total = parseInt(document.getElementById('sub-total').value) || 0;
+
+      if (!name) return alert("Subject name required!");
+      if (attended > total) return alert("Attended cannot exceed Total classes!");
+
+      subjects.push({ id: Date.now(), name, attended, total });
+      document.getElementById('sub-name').value = '';
+      document.getElementById('sub-attended').value = '';
+      document.getElementById('sub-total').value = '';
+
+      renderSubjects();
+      syncData();
+    };
+
+    window.updateAttendance = (id, deltaPresent, deltaTotal) => {
+      subjects = subjects.map(sub => {
+        if (sub.id === id) {
+          const nextAttended = Math.max(0, sub.attended + deltaPresent);
+          const nextTotal = Math.max(0, sub.total + deltaTotal);
+          if (nextAttended <= nextTotal) {
+            return { ...sub, attended: nextAttended, total: nextTotal };
+          }
+        }
+        return sub;
+      });
+      renderSubjects();
+      syncData();
+    };
+
+    window.deleteSubject = (id) => {
+      subjects = subjects.filter(s => s.id !== id);
+      renderSubjects();
+      syncData();
+    };
+
+    function renderSubjects() {
+      const container = document.getElementById('subjects-list');
+      container.innerHTML = '';
+
+      subjects.forEach(sub => {
+        const pct = sub.total === 0 ? 0 : Math.round((sub.attended / sub.total) * 100);
+        let statusMsg = '';
+        let badgeColor = '';
+
+        if (pct >= 75) {
+          const bunksPossible = Math.floor((sub.attended - 0.75 * sub.total) / 0.75);
+          statusMsg = bunksPossible > 0 
+            ? `✨ Chill zone! You can bunk ${bunksPossible} classes safely.` 
+            : `🛡️ Safe! Don't bunk right now.`;
+          badgeColor = 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30';
+        } else {
+          const needed = Math.ceil((0.75 * sub.total - sub.attended) / 0.25);
+          statusMsg = `⚠️ Danger! Attend next ${needed} classes straight.`;
+          badgeColor = 'text-rose-500 bg-rose-500/10 border-rose-500/30';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'card-bg p-5 rounded-2xl flex flex-col gap-4 border transition duration-300';
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-xl font-bold">${sub.name}</h3>
+              <p class="text-xs opacity-75 mt-0.5">Classes: ${sub.attended}/${sub.total}</p>
+            </div>
+            <div class="text-right">
+              <span class="text-2xl font-black ${pct >= 75 ? 'text-emerald-500' : 'text-rose-500'}">${pct}%</span>
+              <button onclick="deleteSubject(${sub.id})" class="block text-xs text-red-400 hover:underline mt-1 font-semibold">Delete</button>
+            </div>
+          </div>
+          <div class="px-3 py-2 rounded-xl text-xs font-semibold border ${badgeColor}">
+            ${statusMsg}
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-1">
+            <button onclick="updateAttendance(${sub.id}, 1, 1)" class="bg-emerald-600 text-white hover:bg-emerald-500 py-2 rounded-xl font-bold text-xs transition">+ Present</button>
+            <button onclick="updateAttendance(${sub.id}, 0, 1)" class="bg-rose-600 text-white hover:bg-rose-500 py-2 rounded-xl font-bold text-xs transition">+ Bunk (Absent)</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    const savedTheme = localStorage.getItem('user_theme') || 'boys';
+    window.setMode(savedTheme);
+  </script>
+</head>
+<body class="p-4 sm:p-6 flex flex-col items-center min-h-screen">
+  <div class="w-full max-w-md flex flex-col gap-6">
+
+    <!-- Mode Selector -->
+    <div class="flex justify-center items-center gap-2 p-1.5 rounded-2xl bg-black/40 backdrop-blur border border-white/10">
+      <button onclick="setMode('boys')" class="flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 hover:bg-red-950/40">
+        🦇 Boys (Batman)
+      </button>
+      <button onclick="setMode('girls')" class="flex-1 py-2 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 hover:bg-pink-100/30">
+        🌸 Girls (Kitty Pink)
+      </button>
+    </div>
+
+    <!-- Header -->
+    <header class="text-center">
+      <h1 class="text-3xl font-black title-font">BunkSafe 75%</h1>
+      <p id="brand-subtitle" class="text-xs uppercase tracking-widest font-semibold mt-1 opacity-80">Attendance Tracker</p>
+      <div id="header-tag" class="inline-block mt-2 px-3 py-0.5 rounded-full text-[11px] font-bold border border-current/20"></div>
+    </header>
+
+    <!-- Auth Card -->
+    <div id="auth-section" class="card-bg p-6 rounded-3xl flex flex-col gap-4 border transition">
+      <h2 class="text-base font-bold text-center tracking-wide">Cloud Sync Login</h2>
+      <div class="space-y-3">
+        <input id="auth-email" type="email" placeholder="Enter Gmail ID" class="w-full bg-black/60 border border-white/20 rounded-xl px-4 py-3 text-sm focus:outline-none">
+        <input id="auth-password" type="password" placeholder="Password (min 6 characters)" class="w-full bg-black/60 border border-white/20 rounded-xl px-4 py-3 text-sm focus:outline-none">
+      </div>
+      <p id="auth-error" class="text-rose-500 text-xs font-semibold text-center"></p>
+      <button id="auth-submit-btn" onclick="handleAuth()" class="w-full accent-btn py-3 rounded-xl font-bold text-sm transition">
+        Sign Up
+      </button>
+      <div class="flex justify-between items-center text-xs opacity-75 px-1 font-semibold">
+        <span id="toggle-to-signup" class="hidden">New? <button onclick="switchAuthMode('signup')" class="underline font-bold">Sign Up</button></span>
+        <span id="toggle-to-login">Have account? <button onclick="switchAuthMode('login')" class="underline font-bold">Login</button></span>
+        <button onclick="handleResetPassword()" class="hover:underline">Forgot?</button>
+      </div>
+    </div>
+
+    <!-- Main Tracker Section -->
+    <div id="app-section" class="hidden flex flex-col gap-6">
+      <div class="flex justify-between items-center card-bg px-4 py-2.5 rounded-xl border">
+        <span id="user-badge" class="text-xs font-semibold truncate max-w-[200px]"></span>
+        <button onclick="handleLogout()" class="text-xs font-bold text-rose-500 hover:underline">Logout</button>
+      </div>
+
+      <!-- Add Subject -->
+      <div class="card-bg p-5 rounded-3xl border flex flex-col gap-3">
+        <h3 class="text-sm font-bold">Add Subject</h3>
+        <input id="sub-name" type="text" placeholder="Subject Name (e.g. OS, Maths)" class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none">
+        <div class="grid grid-cols-2 gap-2">
+          <input id="sub-attended" type="number" placeholder="Attended" class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none">
+          <input id="sub-total" type="number" placeholder="Total Classes" class="w-full bg-black/60 border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none">
+        </div>
+        <button onclick="addSubject()" class="w-full accent-btn py-2.5 rounded-xl font-bold text-sm transition">
+          + Add Course
+        </button>
+      </div>
+
+      <!-- Subjects List -->
+      <div id="subjects-list" class="flex flex-col gap-4"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs opacity-60 py-4 font-semibold">
+      BunkSafe • Built by Yashh
+    </footer>
+
+  </div>
+</body>
+</html>
