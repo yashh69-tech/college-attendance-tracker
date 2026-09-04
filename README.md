@@ -1,1 +1,0 @@
-# college-attendance-tracker
