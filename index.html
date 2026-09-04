@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>75% Rule - Smart Attendance Tracker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #090d16;
+    color: #f8fafc;
+    padding-bottom: 90px;
+  }
+
+  header {
+    background: #05070c;
+    border-bottom: 1px solid #1e293b;
+    padding: 16px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-wrap {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .logo h1 { font-size: 18px; font-weight: 900; letter-spacing: -0.5px; }
+  .logo span { font-size: 11px; color: #38bdf8; font-weight: 800; }
+  .watermark-badge {
+    font-size: 11px;
+    font-weight: 800;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+  }
+
+  .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+
+  .stats-card {
+    background: #111827;
+    border: 1px solid #1f293d;
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .stats-info .label { font-size: 11px; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
+  .stats-info .percent { font-size: 32px; font-weight: 900; }
+  .stats-info .sub-text { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  .status-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 900;
+    text-align: center;
+  }
+  .safe { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid #22c55e; }
+  .critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; }
+
+  .add-box {
+    background: #111827;
+    border: 1px solid #1f293d;
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 8px;
+  }
+  .add-box input {
+    flex: 1;
+    background: #090d16;
+    border: 1px solid #1f293d;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+  }
+  .add-box button {
+    background: #38bdf8;
+    color: #000;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 800;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .subject-card {
+    background: #111827;
+    border: 1px solid #1f293d;
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .sub-name { font-size: 16px; font-weight: 800; }
+  .sub-pct { font-size: 16px; font-weight: 900; }
+
+  .progress-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: #090d16;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .progress-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+
+  .bunk-msg {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+  .msg-safe { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
+  .msg-danger { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #1f293d;
+    padding-top: 12px;
+  }
+  .counts { font-size: 12px; color: #94a3b8; font-weight: 700; }
+  .btn-group { display: flex; gap: 8px; }
+  .btn-act {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .btn-present { background: #22c55e; color: #000; }
+  .btn-absent { background: #ef4444; color: #fff; }
+  .btn-delete {
+    background: transparent;
+    color: #64748b;
+    border: none;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  footer {
+    text-align: center;
+    padding: 24px 16px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  footer span { color: #38bdf8; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-wrap">
+    <div class="logo">
+      <h1>🎯 75% ATTENDANCE</h1>
+      <span>SMART BUNK TRACKER</span>
+    </div>
+    <div class="watermark-badge">⚡ BY YASHH</div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="stats-card">
+    <div class="stats-info">
+      <div class="label">Semester Total</div>
+      <div class="percent" id="overallPct">0%</div>
+      <div class="sub-text" id="overallCounts">0 / 0 Classes Attended</div>
+    </div>
+    <div class="status-pill safe" id="overallStatus">Safe Zone</div>
+  </div>
+
+  <div class="add-box">
+    <input type="text" id="subjectInput" placeholder="Add subject (e.g. C Programming, OS)...">
+    <button onclick="addSubject()">+ ADD</button>
+  </div>
+
+  <div id="subjectList"></div>
+</div>
+
+<footer>
+  Designed & Built with ⚡ by <span>Yashh</span>
+</footer>
+
+<script>
+  let subjects = JSON.parse(localStorage.getItem('yashh_attendance_data')) || [
+    { id: '1', name: 'Computer Fundamentals', attended: 12, total: 15 },
+    { id: '2', name: 'C Programming', attended: 14, total: 20 }
+  ];
+
+  function saveToStorage() {
+    localStorage.setItem('yashh_attendance_data', JSON.stringify(subjects));
+    render();
+  }
+
+  function addSubject() {
+    const input = document.getElementById('subjectInput');
+    const name = input.value.trim();
+    if (!name) return;
+
+    subjects.push({
+      id: Date.now().toString(),
+      name: name,
+      attended: 0,
+      total: 0
+    });
+    input.value = "";
+    saveToStorage();
+  }
+
+  function deleteSubject(id) {
+    if (confirm("Is subject ko delete karna chahte ho?")) {
+      subjects = subjects.filter(s => s.id !== id);
+      saveToStorage();
+    }
+  }
+
+  function markAttendance(id, isPresent) {
+    const item = subjects.find(s => s.id === id);
+    if (!item) return;
+
+    item.total += 1;
+    if (isPresent) item.attended += 1;
+    saveToStorage();
+  }
+
+  function calculateStatus(attended, total) {
+    if (total === 0) return { pct: 0, msg: "Abhi koi class nahi hui", isSafe: true };
+    const pct = Math.round((attended / total) * 100);
+
+    if (pct >= 75) {
+      const maxBunks = Math.floor((attended - 0.75 * total) / 0.75);
+      return {
+        pct: pct,
+        msg: maxBunks > 0 ? `Chill! ${maxBunks} classes safely bunk kar sakte ho` : `Borderline! Agli class miss mat karna`,
+        isSafe: true
+      };
+    } else {
+      const needed = Math.ceil((0.75 * total - attended) / 0.25);
+      return {
+        pct: pct,
+        msg: `Danger! 75% ke liye agli ${needed} classes lena zaruri hai`,
+        isSafe: false
+      };
+    }
+  }
+
+  function render() {
+    const list = document.getElementById('subjectList');
+    list.innerHTML = "";
+
+    let totalAttendedAll = 0;
+    let totalClassesAll = 0;
+
+    subjects.forEach(sub => {
+      totalAttendedAll += sub.attended;
+      totalClassesAll += sub.total;
+
+      const calc = calculateStatus(sub.attended, sub.total);
+      const color = calc.isSafe ? "#22c55e" : "#ef4444";
+
+      const card = document.createElement('div');
+      card.className = 'subject-card';
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="sub-name">${sub.name}</div>
+          <div class="sub-pct" style="color: ${color}">${calc.pct}%</div>
+        </div>
+
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" style="width: ${calc.pct}%; background: ${color};"></div>
+        </div>
+
+        <div class="bunk-msg ${calc.isSafe ? 'msg-safe' : 'msg-danger'}">
+          ${calc.msg}
+        </div>
+
+        <div class="actions">
+          <div class="counts">${sub.attended} attended / ${sub.total} total</div>
+          <div class="btn-group">
+            <button class="btn-act btn-present" onclick="markAttendance('${sub.id}', true)">+ Present</button>
+            <button class="btn-act btn-absent" onclick="markAttendance('${sub.id}', false)">- Absent</button>
+          </div>
+        </div>
+        <div style="text-align: right; margin-top: 8px;">
+          <button class="btn-delete" onclick="deleteSubject('${sub.id}')">Delete Subject</button>
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    const overallCalc = calculateStatus(totalAttendedAll, totalClassesAll);
+    document.getElementById('overallPct').textContent = `${overallCalc.pct}%`;
+    document.getElementById('overallPct').style.color = overallCalc.isSafe ? '#22c55e' : '#ef4444';
+    document.getElementById('overallCounts').textContent = `${totalAttendedAll} / ${totalClassesAll} Classes Attended Across All Subjects`;
+
+    const statusBadge = document.getElementById('overallStatus');
+    if (overallCalc.isSafe) {
+      statusBadge.className = "status-pill safe";
+      statusBadge.textContent = "Safe Zone";
+    } else {
+      statusBadge.className = "status-pill critical";
+      statusBadge.textContent = "Short Attendance";
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>
