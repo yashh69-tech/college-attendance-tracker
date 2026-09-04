@@ -38,12 +38,13 @@
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyBWtqbPuubybClu6KL_GxFhSE24TK3Cp94",
-      authDomain: "college-attendance-track-2b94f.firebaseapp.com",
-      projectId: "college-attendance-track-2b94f",
-      storageBucket: "college-attendance-track-2b94f.appspot.com",
-      messagingSenderId: "507456065132",
-      appId: "1:507456065132:web:9907f4b9f6d978154c5249"
+      apiKey: "AIzaSyBWo_BDIOcGNmVJesIGJEYOlciNrK3qVJI",
+      authDomain: "attendance-v2-301a6.firebaseapp.com",
+      projectId: "attendance-v2-301a6",
+      storageBucket: "attendance-v2-301a6.firebasestorage.app",
+      messagingSenderId: "1317931695",
+      appId: "1:1317931695:web:b95e42b636235929faa25a",
+      measurementId: "G-2QDN1H6HPT"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -69,7 +70,7 @@
       errEl.innerText = '';
 
       if (!email || !password) {
-        errEl.innerText = "Email & Password enter karo bhai!";
+        errEl.innerText = "Email & Password enter karo!";
         return;
       }
 
@@ -93,7 +94,7 @@
       }
       try {
         await sendPasswordResetEmail(auth, email);
-        alert("Password reset link bhej di hai Gmail par check karo!");
+        alert("Password reset link email par bhej di gayi hai!");
       } catch (err) {
         errEl.innerText = err.message.replace("Firebase: ", "");
       }
@@ -251,7 +252,7 @@
     <div id="auth-section" class="glass-card p-6 rounded-3xl flex flex-col gap-4 border">
       <h2 class="text-lg font-bold text-center text-slate-200">Cloud Sync Login</h2>
       <div class="space-y-3">
-        <input id="auth-email" type="email" placeholder="Enter your college/personal email" class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500">
+        <input id="auth-email" type="email" placeholder="Enter your email" class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500">
         <input id="auth-password" type="password" placeholder="Password (min 6 characters)" class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500">
       </div>
       <p id="auth-error" class="text-rose-400 text-xs font-semibold"></p>
@@ -297,3 +298,4 @@
   </div>
 </body>
 </html>
+
