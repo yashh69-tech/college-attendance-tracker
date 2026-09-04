@@ -1,594 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>75% Rule - Smart Attendance Hub</title>
-
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #080a11;
-    color: #f8fafc;
-    min-height: 100vh;
-    padding-bottom: 90px;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
-  }
-
-  header {
-    background: rgba(8, 10, 17, 0.85);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid #1e293b;
-    padding: 14px 20px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .header-wrap {
-    max-width: 600px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .brand h1 { font-size: 17px; font-weight: 900; letter-spacing: -0.5px; }
-  .brand span { font-size: 10px; color: #38bdf8; font-weight: 800; letter-spacing: 1px; }
-
-  .creator-badge {
-    background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(168, 85, 247, 0.15));
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: #38bdf8;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 800;
-  }
-
-  .container { max-width: 600px; margin: 0 auto; padding: 18px; }
-
-  /* 🌌 AESTHETIC GEN Z AUTH CARD */
-  .auth-hero-card {
-    background: rgba(18, 24, 38, 0.7);
-    border: 1px solid rgba(56, 189, 248, 0.2);
-    border-radius: 24px;
-    padding: 30px 22px;
-    text-align: center;
-    backdrop-filter: blur(16px);
-    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
-    margin-top: 20px;
-  }
-  .hero-tag {
-    display: inline-block;
-    background: rgba(56, 189, 248, 0.12);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    font-size: 10px;
-    font-weight: 900;
-    letter-spacing: 1px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    margin-bottom: 12px;
-  }
-  .auth-hero-card h2 {
-    font-size: 24px;
-    font-weight: 900;
-    margin-bottom: 8px;
-  }
-  .auth-hero-card p {
-    font-size: 12px;
-    color: #94a3b8;
-    margin-bottom: 22px;
-  }
-
-  .auth-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-width: 360px;
-    margin: 0 auto 16px;
-  }
-  .auth-input {
-    background: #080a11;
-    border: 1px solid #1e283d;
-    padding: 13px 16px;
-    border-radius: 12px;
-    color: #fff;
-    font-size: 14px;
-    outline: none;
-    transition: border 0.2s;
-  }
-  .auth-input:focus { border-color: #38bdf8; }
-
-  .btn-auth-primary {
-    background: #38bdf8;
-    color: #080a11;
-    border: none;
-    padding: 13px;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 900;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(56, 189, 248, 0.25);
-  }
-
-  .auth-toggle-row {
-    font-size: 12px;
-    color: #94a3b8;
-    margin-top: 14px;
-  }
-  .auth-toggle-link {
-    color: #38bdf8;
-    font-weight: 800;
-    cursor: pointer;
-    text-decoration: underline;
-  }
-  .forgot-link {
-    font-size: 11px;
-    color: #64748b;
-    margin-top: 8px;
-    cursor: pointer;
-    display: inline-block;
-  }
-  .forgot-link:hover { color: #38bdf8; }
-
-  /* User Profile Bar */
-  .profile-bar {
-    background: rgba(19, 28, 46, 0.6);
-    border: 1px solid #1f2d47;
-    border-radius: 16px;
-    padding: 12px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  .profile-info { display: flex; align-items: center; gap: 10px; }
-  .profile-avatar { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #38bdf8; }
-  .profile-name { font-size: 13px; font-weight: 800; }
-  .profile-status { font-size: 10px; color: #22c55e; font-weight: 700; display: flex; align-items: center; gap: 4px; }
-  .profile-status::before { content: ''; width: 6px; height: 6px; background: #22c55e; border-radius: 50%; display: inline-block; }
-  .btn-logout {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 800;
-    cursor: pointer;
-  }
-
-  /* Overall Stats */
-  .stats-card {
-    background: #121724;
-    border: 1px solid #1e283d;
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .stats-info .label { font-size: 11px; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
-  .stats-info .percent { font-size: 36px; font-weight: 900; }
-  .stats-info .sub-text { font-size: 12px; color: #94a3b8; margin-top: 4px; }
-  .status-pill {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 900;
-  }
-  .safe { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid #22c55e; }
-  .critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid #ef4444; }
-
-  /* Add Subject */
-  .add-box {
-    background: #121724;
-    border: 1px solid #1e283d;
-    border-radius: 14px;
-    padding: 10px;
-    margin-bottom: 20px;
-    display: flex;
-    gap: 8px;
-  }
-  .add-box input {
-    flex: 1;
-    background: #080a11;
-    border: 1px solid #1e283d;
-    padding: 12px 14px;
-    border-radius: 10px;
-    color: #fff;
-    font-size: 14px;
-    outline: none;
-  }
-  .add-box button {
-    background: #38bdf8;
-    color: #000;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-weight: 900;
-    cursor: pointer;
-    font-size: 13px;
-  }
-
-  /* Subject Cards */
-  .subject-card {
-    background: #121724;
-    border: 1px solid #1e283d;
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 12px;
-  }
-  .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
-  .sub-name { font-size: 16px; font-weight: 800; }
-  .sub-pct { font-size: 18px; font-weight: 900; }
-
-  .progress-bar-bg {
-    width: 100%;
-    height: 6px;
-    background: #080a11;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 12px;
-  }
-  .progress-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
-
-  .bunk-msg {
-    font-size: 12px;
-    font-weight: 800;
-    margin-bottom: 14px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    display: inline-block;
-  }
-  .msg-safe { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
-  .msg-danger { background: rgba(239, 68, 68, 0.1); color: #f87171; }
-
-  .actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid #1e283d;
-    padding-top: 12px;
-  }
-  .counts { font-size: 12px; color: #94a3b8; font-weight: 700; }
-  .btn-group { display: flex; gap: 8px; }
-  .btn-act {
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    font-size: 12px;
-    font-weight: 900;
-    cursor: pointer;
-  }
-  .btn-present { background: #22c55e; color: #000; }
-  .btn-absent { background: #ef4444; color: #fff; }
-  .btn-delete {
-    background: transparent;
-    color: #64748b;
-    border: none;
-    font-size: 11px;
-    cursor: pointer;
-    font-weight: 700;
-    text-decoration: underline;
-  }
-
-  footer {
-    text-align: center;
-    padding: 30px 16px;
-    color: #64748b;
-    font-size: 12px;
-    font-weight: 800;
-  }
-  footer span { color: #38bdf8; }
-</style>
-</head>
-<body>
-
-<header>
-  <div class="header-wrap">
-    <div class="brand">
-      <h1>🎯 75% ATTENDANCE</h1>
-      <span>GEN Z BUNK ENGINE</span>
-    </div>
-    <div class="creator-badge">⚡ BY YASHH</div>
-  </div>
-</header>
-
-<div class="container">
-  <!-- 🔐 AUTH CARD (Login / Register / Forgot Password) -->
-  <div class="auth-hero-card" id="loginBox">
-    <div class="hero-tag">☁️ Cloud Account</div>
-    <h2 id="authHeading">Welcome Back</h2>
-    <p id="authSub">Sign in with your Gmail and your app password to sync attendance.</p>
-    
-    <div class="auth-input-group">
-      <input type="email" id="authEmail" class="auth-input" placeholder="Enter your Gmail address">
-      <input type="password" id="authPassword" class="auth-input" placeholder="Enter your app password">
-      <button class="btn-auth-primary" id="btnSubmitAuth" onclick="handleAuthSubmit()">Login</button>
-    </div>
-
-    <div>
-      <span class="forgot-link" onclick="handleForgotPassword()">Forgot Password? Reset via Gmail</span>
-    </div>
-
-    <div class="auth-toggle-row">
-      <span id="authToggleText">New user? </span>
-      <span class="auth-toggle-link" id="authToggleBtn" onclick="toggleAuthMode()">Create New Account</span>
-    </div>
-  </div>
-
-  <!-- 🚀 MAIN APP BODY (Visible when logged in) -->
-  <div id="appBody" style="display: none;">
-    <div class="profile-bar">
-      <div class="profile-info">
-        <img id="userAvatar" class="profile-avatar" src="" alt="User">
-        <div>
-          <div class="profile-name" id="userName">User</div>
-          <div class="profile-status">Cloud Sync Active</div>
-        </div>
-      </div>
-      <button class="btn-logout" onclick="signOutUser()">Logout</button>
-    </div>
-
-    <div class="stats-card">
-      <div class="stats-info">
-        <div class="label">Semester Attendance</div>
-        <div class="percent" id="overallPct">0%</div>
-        <div class="sub-text" id="overallCounts">0 / 0 Classes Attended</div>
-      </div>
-      <div class="status-pill safe" id="overallStatus">Safe Zone</div>
-    </div>
-
-    <div class="add-box">
-      <input type="text" id="subjectInput" placeholder="Add subject (e.g. OS, C Programming, Web Tech)...">
-      <button onclick="addSubject()">+ ADD</button>
-    </div>
-
-    <div id="subjectList"></div>
-  </div>
-</div>
-
-<footer>
-  Crafted for Gen Z Students ⚡ by <span>Yashh</span>
-</footer>
-
-<script>
-  // Tumhara Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyAqBD363_lplyLeHEnJ0nDLMymWzEdIzg8",
-    authDomain: "college-attendance-track-2b94f.firebaseapp.com",
-    projectId: "college-attendance-track-2b94f",
-    storageBucket: "college-attendance-track-2b94f.firebasestorage.app",
-    messagingSenderId: "507456065132",
-    appId: "1:507456065132:web:9907f4b9f6d978154c5249",
-    measurementId: "G-5390Z72D91"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-
-  let currentUser = null;
-  let subjects = [];
-  let isRegisterMode = false;
-
-  function toggleAuthMode() {
-    isRegisterMode = !isRegisterMode;
-    const heading = document.getElementById('authHeading');
-    const sub = document.getElementById('authSub');
-    const btn = document.getElementById('btnSubmitAuth');
-    const toggleText = document.getElementById('authToggleText');
-    const toggleBtn = document.getElementById('authToggleBtn');
-
-    if (isRegisterMode) {
-      heading.textContent = "Create Account";
-      sub.textContent = "Use your real Gmail & create any password of your choice.";
-      btn.textContent = "Sign Up";
-      toggleText.textContent = "Already have an account? ";
-      toggleBtn.textContent = "Login here";
-    } else {
-      heading.textContent = "Welcome Back";
-      sub.textContent = "Sign in with your Gmail and your app password to sync attendance.";
-      btn.textContent = "Login";
-      toggleText.textContent = "New user? ";
-      toggleBtn.textContent = "Create New Account";
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bunk & Attendance Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at top right, #1e1b4b, #0f172a, #030712);
+      min-height: 100vh;
+      color: #f8fafc;
     }
-  }
-
-  function handleAuthSubmit() {
-    const email = document.getElementById('authEmail').value.trim();
-    const pass = document.getElementById('authPassword').value.trim();
-
-    if (!email || !pass) {
-      alert("Gmail aur Password dono enter karo!");
-      return;
+    .glass-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
-    if (pass.length < 6) {
-      alert("Password kam se kam 6 characters ka hona chahiye!");
-      return;
-    }
+  </style>
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getAuth, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged,
+      sendPasswordResetEmail
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      setDoc, 
+      getDoc 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    if (isRegisterMode) {
-      // Create new account
-      auth.createUserWithEmailAndPassword(email, pass)
-        .then(() => alert("Account successfully ban gaya! Data auto sync hoga."))
-        .catch(err => alert("Sign up failed: " + err.message));
-    } else {
-      // Existing login
-      auth.signInWithEmailAndPassword(email, pass)
-        .catch(err => alert("Login failed: " + err.message));
-    }
-  }
+    const firebaseConfig = {
+      apiKey: "AIzaSyBWtqbPuubybClu6KL_GxFhSE24TK3Cp94",
+      authDomain: "college-attendance-track-2b94f.firebaseapp.com",
+      projectId: "college-attendance-track-2b94f",
+      storageBucket: "college-attendance-track-2b94f.appspot.com",
+      messagingSenderId: "507456065132",
+      appId: "1:507456065132:web:9907f4b9f6d978154c5249"
+    };
 
-  function handleForgotPassword() {
-    const email = prompt("Apna registered Gmail enter karo. Wahan password reset link bhej denge:");
-    if (!email) return;
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    auth.sendPasswordResetEmail(email.trim())
-      .then(() => alert("Password reset link tumhare Gmail par bhej diya gaya hai! Inbox check karo."))
-      .catch(err => alert("Error: " + err.message));
-  }
+    let currentUser = null;
+    let subjects = [];
 
-  // Auth Listener
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      currentUser = user;
-      document.getElementById('loginBox').style.display = 'none';
-      document.getElementById('appBody').style.display = 'block';
+    window.switchAuthMode = (mode) => {
+      const isLogin = mode === 'login';
+      document.getElementById('auth-submit-btn').innerText = isLogin ? 'Login' : 'Sign Up';
+      document.getElementById('toggle-to-signup').classList.toggle('hidden', !isLogin);
+      document.getElementById('toggle-to-login').classList.toggle('hidden', isLogin);
+      document.getElementById('auth-error').innerText = '';
+    };
 
-      const shortName = user.email.split('@')[0];
-      document.getElementById('userName').textContent = shortName;
-      document.getElementById('userAvatar').src = `https://api.dicebear.com/7.x/bottts/svg?seed=${shortName}`;
+    window.handleAuth = async () => {
+      const email = document.getElementById('auth-email').value.trim();
+      const password = document.getElementById('auth-password').value;
+      const isLogin = document.getElementById('auth-submit-btn').innerText === 'Login';
+      const errEl = document.getElementById('auth-error');
+      errEl.innerText = '';
 
-      // Firestore Realtime listener
-      db.collection('users').doc(user.uid).onSnapshot(doc => {
-        if (doc.exists && doc.data().subjects) {
-          subjects = doc.data().subjects;
+      if (!email || !password) {
+        errEl.innerText = "Email & Password enter karo bhai!";
+        return;
+      }
+
+      try {
+        if (isLogin) {
+          await signInWithEmailAndPassword(auth, email, password);
         } else {
-          subjects = [];
+          await createUserWithEmailAndPassword(auth, email, password);
         }
-        render();
+      } catch (err) {
+        errEl.innerText = err.message.replace("Firebase: ", "");
+      }
+    };
+
+    window.handleResetPassword = async () => {
+      const email = document.getElementById('auth-email').value.trim();
+      const errEl = document.getElementById('auth-error');
+      if (!email) {
+        errEl.innerText = "Pehle email box me apna Gmail daalo!";
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("Password reset link bhej di hai Gmail par check karo!");
+      } catch (err) {
+        errEl.innerText = err.message.replace("Firebase: ", "");
+      }
+    };
+
+    window.handleLogout = async () => {
+      await signOut(auth);
+      subjects = [];
+      renderSubjects();
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      const authCard = document.getElementById('auth-section');
+      const appCard = document.getElementById('app-section');
+      const userBadge = document.getElementById('user-badge');
+
+      if (user) {
+        authCard.classList.add('hidden');
+        appCard.classList.remove('hidden');
+        userBadge.innerText = user.email;
+        loadUserData(user.uid);
+      } else {
+        authCard.classList.remove('hidden');
+        appCard.classList.add('hidden');
+      }
+    });
+
+    async function loadUserData(uid) {
+      try {
+        const docRef = doc(db, "users", uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          subjects = docSnap.data().subjects || [];
+          renderSubjects();
+        }
+      } catch (e) {
+        console.error("Data load error:", e);
+      }
+    }
+
+    async function syncData() {
+      if (!currentUser) return;
+      try {
+        await setDoc(doc(db, "users", currentUser.uid), { subjects: subjects });
+      } catch (e) {
+        console.error("Save error:", e);
+      }
+    }
+
+    window.addSubject = () => {
+      const nameInput = document.getElementById('sub-name');
+      const attendedInput = document.getElementById('sub-attended');
+      const totalInput = document.getElementById('sub-total');
+
+      const name = nameInput.value.trim();
+      const attended = parseInt(attendedInput.value) || 0;
+      const total = parseInt(totalInput.value) || 0;
+
+      if (!name) return alert("Subject ka naam daalo!");
+      if (attended > total) return alert("Attended classes total se zyada nahi ho sakti!");
+
+      subjects.push({ id: Date.now(), name, attended, total });
+      nameInput.value = '';
+      attendedInput.value = '';
+      totalInput.value = '';
+
+      renderSubjects();
+      syncData();
+    };
+
+    window.updateAttendance = (id, deltaPresent, deltaTotal) => {
+      subjects = subjects.map(sub => {
+        if (sub.id === id) {
+          const nextAttended = Math.max(0, sub.attended + deltaPresent);
+          const nextTotal = Math.max(0, sub.total + deltaTotal);
+          if (nextAttended <= nextTotal) {
+            return { ...sub, attended: nextAttended, total: nextTotal };
+          }
+        }
+        return sub;
       });
+      renderSubjects();
+      syncData();
+    };
 
-    } else {
-      currentUser = null;
-      document.getElementById('loginBox').style.display = 'block';
-      document.getElementById('appBody').style.display = 'none';
-    }
-  });
-
-  function signOutUser() {
-    auth.signOut();
-  }
-
-  function syncToCloud() {
-    if (!currentUser) return;
-    db.collection('users').doc(currentUser.uid).set({
-      subjects: subjects,
-      lastUpdated: new Date()
-    });
-  }
-
-  function addSubject() {
-    const input = document.getElementById('subjectInput');
-    const name = input.value.trim();
-    if (!name) return;
-
-    subjects.push({
-      id: Date.now().toString(),
-      name: name,
-      attended: 0,
-      total: 0
-    });
-    input.value = "";
-    syncToCloud();
-  }
-
-  function deleteSubject(id) {
-    if (confirm("Is subject ko delete karna hai?")) {
+    window.deleteSubject = (id) => {
       subjects = subjects.filter(s => s.id !== id);
-      syncToCloud();
-    }
-  }
+      renderSubjects();
+      syncData();
+    };
 
-  function markAttendance(id, isPresent) {
-    const item = subjects.find(s => s.id === id);
-    if (!item) return;
+    function renderSubjects() {
+      const container = document.getElementById('subjects-list');
+      container.innerHTML = '';
 
-    item.total += 1;
-    if (isPresent) item.attended += 1;
-    syncToCloud();
-  }
+      subjects.forEach(sub => {
+        const pct = sub.total === 0 ? 0 : Math.round((sub.attended / sub.total) * 100);
+        let statusMsg = '';
+        let badgeColor = '';
 
-  function calculateStatus(attended, total) {
-    if (total === 0) return { pct: 0, msg: "Abhi koi class nahi hui", isSafe: true };
-    const pct = Math.round((attended / total) * 100);
+        if (pct >= 75) {
+          const bunksPossible = Math.floor((sub.attended - 0.75 * sub.total) / 0.75);
+          statusMsg = bunksPossible > 0 
+            ? `Chill zone! You can bunk ${bunksPossible} classes safely.` 
+            : `Safe for now! Can't bunk any class right now.`;
+          badgeColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+        } else {
+          const needed = Math.ceil((0.75 * sub.total - sub.attended) / 0.25);
+          statusMsg = `Danger! Attend next ${needed} classes straight.`;
+          badgeColor = 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+        }
 
-    if (pct >= 75) {
-      const maxBunks = Math.floor((attended - 0.75 * total) / 0.75);
-      return {
-        pct: pct,
-        msg: maxBunks > 0 ? `Chill vibe! ${maxBunks} classes bunk kar sakte ho ✨` : `Borderline! Next class attend karo 👀`,
-        isSafe: true
-      };
-    } else {
-      const needed = Math.ceil((0.75 * total - attended) / 0.25);
-      return {
-        pct: pct,
-        msg: `Danger! 75% ke liye agli ${needed} classes lagatar leni hongi 🚨`,
-        isSafe: false
-      };
-    }
-  }
-
-  function render() {
-    const list = document.getElementById('subjectList');
-    list.innerHTML = "";
-
-    let totalAttendedAll = 0;
-    let totalClassesAll = 0;
-
-    subjects.forEach(sub => {
-      totalAttendedAll += sub.attended;
-      totalClassesAll += sub.total;
-
-      const calc = calculateStatus(sub.attended, sub.total);
-      const color = calc.isSafe ? "#22c55e" : "#ef4444";
-
-      const card = document.createElement('div');
-      card.className = 'subject-card';
-      card.innerHTML = `
-        <div class="card-top">
-          <div class="sub-name">${sub.name}</div>
-          <div class="sub-pct" style="color: ${color}">${calc.pct}%</div>
-        </div>
-
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" style="width: ${calc.pct}%; background: ${color};"></div>
-        </div>
-
-        <div class="bunk-msg ${calc.isSafe ? 'msg-safe' : 'msg-danger'}">
-          ${calc.msg}
-        </div>
-
-        <div class="actions">
-          <div class="counts">${sub.attended} attended / ${sub.total} total</div>
-          <div class="btn-group">
-            <button class="btn-act btn-present" onclick="markAttendance('${sub.id}', true)">+ Present</button>
-            <button class="btn-act btn-absent" onclick="markAttendance('${sub.id}', false)">- Absent</button>
+        const card = document.createElement('div');
+        card.className = 'glass-card p-5 rounded-2xl flex flex-col gap-4 border';
+        card.innerHTML = `
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-xl font-bold text-white">${sub.name}</h3>
+              <p class="text-sm text-slate-400">Total: ${sub.attended}/${sub.total} Classes</p>
+            </div>
+            <div class="text-right">
+              <span class="text-2xl font-black ${pct >= 75 ? 'text-emerald-400' : 'text-rose-400'}">${pct}%</span>
+              <button onclick="deleteSubject(${sub.id})" class="block text-xs text-slate-500 hover:text-red-400 mt-1">Delete</button>
+            </div>
           </div>
-        </div>
-        <div style="text-align: right; margin-top: 8px;">
-          <button class="btn-delete" onclick="deleteSubject('${sub.id}')">Delete Subject</button>
-        </div>
-      `;
-      list.appendChild(card);
-    });
-
-    const overallCalc = calculateStatus(totalAttendedAll, totalClassesAll);
-    document.getElementById('overallPct').textContent = `${overallCalc.pct}%`;
-    document.getElementById('overallPct').style.color = overallCalc.isSafe ? '#22c55e' : '#ef4444';
-    document.getElementById('overallCounts').textContent = `${totalAttendedAll} / ${totalClassesAll} Classes Across All Subjects`;
-
-    const statusBadge = document.getElementById('overallStatus');
-    if (overallCalc.isSafe) {
-      statusBadge.className = "status-pill safe";
-      statusBadge.textContent = "Safe Zone ✨";
-    } else {
-      statusBadge.className = "status-pill critical";
-      statusBadge.textContent = "Attendance Short 🚨";
+          <div class="px-3 py-2 rounded-lg text-xs font-medium border ${badgeColor}">
+            ${statusMsg}
+          </div>
+          <div class="grid grid-cols-2 gap-2 mt-1">
+            <button onclick="updateAttendance(${sub.id}, 1, 1)" class="bg-emerald-600/80 hover:bg-emerald-600 py-2.5 rounded-xl font-bold text-sm transition">+ Present</button>
+            <button onclick="updateAttendance(${sub.id}, 0, 1)" class="bg-rose-600/80 hover:bg-rose-600 py-2.5 rounded-xl font-bold text-sm transition">+ Absent (Bunk)</button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
     }
-  }
-</script>
+  </script>
+</head>
+<body class="p-4 sm:p-6 flex flex-col items-center">
+  <div class="w-full max-w-md flex flex-col gap-6">
+
+    <!-- Header -->
+    <header class="text-center pt-4">
+      <h1 class="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400">
+        BunkSafe 75%
+      </h1>
+      <p class="text-slate-400 text-xs mt-1 uppercase tracking-widest font-semibold">Attendance & Bunk Tracker</p>
+      <div class="inline-block mt-2 px-3 py-0.5 rounded-full text-[11px] font-bold bg-violet-500/10 text-violet-300 border border-violet-500/20">
+        Built by Yashh
+      </div>
+    </header>
+
+    <!-- Auth Card -->
+    <div id="auth-section" class="glass-card p-6 rounded-3xl flex flex-col gap-4 border">
+      <h2 class="text-lg font-bold text-center text-slate-200">Cloud Sync Login</h2>
+      <div class="space-y-3">
+        <input id="auth-email" type="email" placeholder="Enter your college/personal email" class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500">
+        <input id="auth-password" type="password" placeholder="Password (min 6 characters)" class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-violet-500">
+      </div>
+      <p id="auth-error" class="text-rose-400 text-xs font-semibold"></p>
+      <button id="auth-submit-btn" onclick="handleAuth()" class="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:opacity-90 py-3 rounded-xl font-bold text-sm shadow-lg shadow-violet-600/30 transition">
+        Sign Up
+      </button>
+      <div class="flex justify-between items-center text-xs text-slate-400 px-1">
+        <span id="toggle-to-signup" class="hidden">New here? <button onclick="switchAuthMode('signup')" class="text-violet-400 font-bold underline">Sign Up</button></span>
+        <span id="toggle-to-login">Have an account? <button onclick="switchAuthMode('login')" class="text-violet-400 font-bold underline">Login</button></span>
+        <button onclick="handleResetPassword()" class="text-slate-400 hover:text-white underline">Forgot?</button>
+      </div>
+    </div>
+
+    <!-- Main Tracker Section -->
+    <div id="app-section" class="hidden flex flex-col gap-6">
+      <div class="flex justify-between items-center bg-slate-900/40 px-4 py-2 rounded-xl border border-slate-800">
+        <span id="user-badge" class="text-xs text-slate-400 truncate max-w-[200px]"></span>
+        <button onclick="handleLogout()" class="text-xs text-rose-400 font-bold hover:underline">Logout</button>
+      </div>
+
+      <!-- Add Subject Card -->
+      <div class="glass-card p-5 rounded-3xl border flex flex-col gap-3">
+        <h3 class="text-sm font-bold text-slate-300">Add Subject</h3>
+        <input id="sub-name" type="text" placeholder="e.g. C Programming, OS, Math" class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-violet-500">
+        <div class="grid grid-cols-2 gap-2">
+          <input id="sub-attended" type="number" placeholder="Attended (e.g. 15)" class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-violet-500">
+          <input id="sub-total" type="number" placeholder="Total (e.g. 20)" class="w-full bg-slate-900/80 border border-slate-700/60 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-violet-500">
+        </div>
+        <button onclick="addSubject()" class="w-full bg-violet-600 hover:bg-violet-500 py-2.5 rounded-xl font-bold text-sm transition">
+          + Add Course
+        </button>
+      </div>
+
+      <!-- Subjects Rendered Here -->
+      <div id="subjects-list" class="flex flex-col gap-4"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-xs text-slate-600 py-4">
+      BunkSafe • Built by Yashh
+    </footer>
+
+  </div>
 </body>
 </html>
